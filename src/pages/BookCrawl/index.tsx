@@ -23,6 +23,11 @@ const STATUS_CONFIG: Record<CrawlTaskStatus, { color: string; label: string }> =
   failed:  { color: 'error',      label: '失败'   },
 }
 
+const PRIORITY_CONFIG: Record<CrawlPriority, { color: string; label: string }> = {
+  high: { color: 'red',     label: '高优' },
+  low:  { color: 'default', label: '普通' },
+}
+
 // 统一用 xlsx 解析：xlsx / csv / tsv 均支持
 // 期望首行为 ISBN, 抓取优先级（顺序不限，也兼容无表头的纯 ISBN 列）
 const parseBatchFile = (buffer: ArrayBuffer): Array<{ isbn: string; priority: CrawlPriority }> => {
@@ -60,6 +65,7 @@ function FilterBar() {
       taskId:         v.taskId   || undefined,
       isbn:           v.isbn     || undefined,
       status:         v.status   ?? 'all',
+      priority:       v.priority ?? 'all',
       bookId:         v.bookId   || undefined,
       createdAtStart: start      || undefined,
       createdAtEnd:   end        || undefined,
@@ -68,7 +74,7 @@ function FilterBar() {
 
   const handleReset = () => {
     form.resetFields()
-    setFilter({ taskId: undefined, isbn: undefined, status: 'all', bookId: undefined, createdAtStart: undefined, createdAtEnd: undefined })
+    setFilter({ taskId: undefined, isbn: undefined, status: 'all', priority: 'all', bookId: undefined, createdAtStart: undefined, createdAtEnd: undefined })
   }
 
   return (
@@ -97,6 +103,18 @@ function FilterBar() {
                   ...Object.entries(STATUS_CONFIG)
                     .filter(([v]) => v !== 'pending')
                     .map(([v, c]) => ({ value: v, label: c.label })),
+                ]}
+              />
+            </Form.Item>
+          </Col>
+
+          <Col span={12}>
+            <Form.Item label={<span style={labelStyle}>抓取优先级</span>} name="priority" initialValue="all">
+              <Select
+                style={inputStyle}
+                options={[
+                  { value: 'all', label: '全部' },
+                  ...Object.entries(PRIORITY_CONFIG).map(([v, c]) => ({ value: v, label: c.label })),
                 ]}
               />
             </Form.Item>
@@ -166,7 +184,7 @@ function ManualRows({
             onChange={e => update(i, { priority: e.target.value })}
           >
             <Radio value="high">高优</Radio>
-            <Radio value="low">低优</Radio>
+            <Radio value="low">普通</Radio>
           </Radio.Group>
           <Button
             type="text"
@@ -230,7 +248,7 @@ function AddTaskModal({ open, onClose }: { open: boolean; onClose: () => void })
       children: (
         <div style={{ marginTop: 8 }}>
           <div style={{ marginBottom: 8, fontSize: 12, color: '#888' }}>
-            文件表头：<code>ISBN,抓取优先级</code>，优先级填「高优」或「低优」，支持 XLSX / CSV / TSV
+            文件表头：<code>ISBN,抓取优先级</code>，优先级填「高优」或「普通」，支持 XLSX / CSV / TSV
           </div>
           <Dragger
             accept=".xlsx,.csv,.tsv,.txt"
@@ -295,6 +313,10 @@ export default function BookCrawl() {
     { title: '任务ID',   dataIndex: 'id',        width: 90  },
     { title: '创建时间', dataIndex: 'createdAt',  width: 160 },
     { title: 'ISBN',     dataIndex: 'isbn',       width: 150 },
+    {
+      title: '抓取优先级', dataIndex: 'priority', width: 110,
+      render: (v: CrawlPriority) => <Tag color={PRIORITY_CONFIG[v].color}>{PRIORITY_CONFIG[v].label}</Tag>,
+    },
     {
       title: '抓取状态', dataIndex: 'status', width: 100,
       render: (v: CrawlTaskStatus) => <Tag color={STATUS_CONFIG[v].color}>{STATUS_CONFIG[v].label}</Tag>,

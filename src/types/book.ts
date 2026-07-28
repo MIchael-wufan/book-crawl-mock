@@ -71,6 +71,7 @@ export interface CrawlFilterParams {
   taskId?: string
   isbn?: string
   status?: CrawlTaskStatus | 'all'
+  priority?: CrawlPriority | 'all'
   bookId?: string
   createdAtStart?: string
   createdAtEnd?: string

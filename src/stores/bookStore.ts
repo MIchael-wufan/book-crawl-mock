@@ -57,6 +57,7 @@ const applyFilter = (tasks: CrawlTask[], f: CrawlFilterParams): CrawlTask[] => {
   if (f.taskId) list = list.filter(t => String(t.id).includes(f.taskId!))
   if (f.isbn) list = list.filter(t => t.isbn.includes(f.isbn!))
   if (f.status && f.status !== 'all') list = list.filter(t => t.status === f.status)
+  if (f.priority && f.priority !== 'all') list = list.filter(t => t.priority === f.priority)
   if (f.bookId) list = list.filter(t => t.bookId != null && String(t.bookId).includes(f.bookId!))
   if (f.createdAtStart) list = list.filter(t => t.createdAt >= f.createdAtStart!)
   if (f.createdAtEnd) list = list.filter(t => t.createdAt <= f.createdAtEnd! + ' 23:59')
@@ -65,7 +66,7 @@ const applyFilter = (tasks: CrawlTask[], f: CrawlFilterParams): CrawlTask[] => {
 
 export const useCrawlStore = create<CrawlState & { filteredTasks: () => CrawlTask[] }>((set, get) => ({
   tasks: [...MOCK_CRAWL_TASKS],
-  filter: { status: 'all' },
+  filter: { status: 'all', priority: 'all' },
 
   setFilter: (f) => set(s => ({ filter: { ...s.filter, ...f } })),
 
