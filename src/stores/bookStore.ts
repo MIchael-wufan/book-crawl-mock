@@ -52,13 +52,20 @@ interface CrawlState {
 
 let nextCrawlId = MOCK_CRAWL_TASKS.length + 1001 + 1
 
+// 支持空格 / 英文逗号 / 中文逗号分隔的多值输入，token 间为「任一命中」
+const splitTokens = (raw: string): string[] => raw.split(/[\s,，]+/).filter(Boolean)
+const matchesAny = (value: string, raw: string): boolean => {
+  const tokens = splitTokens(raw)
+  return tokens.length === 0 || tokens.some(token => value.includes(token))
+}
+
 const applyFilter = (tasks: CrawlTask[], f: CrawlFilterParams): CrawlTask[] => {
   let list = [...tasks]
-  if (f.taskId) list = list.filter(t => String(t.id).includes(f.taskId!))
-  if (f.isbn) list = list.filter(t => t.isbn.includes(f.isbn!))
+  if (f.taskId) list = list.filter(t => matchesAny(String(t.id), f.taskId!))
+  if (f.isbn) list = list.filter(t => matchesAny(t.isbn, f.isbn!))
   if (f.status && f.status !== 'all') list = list.filter(t => t.status === f.status)
   if (f.priority && f.priority !== 'all') list = list.filter(t => t.priority === f.priority)
-  if (f.bookId) list = list.filter(t => t.bookId != null && String(t.bookId).includes(f.bookId!))
+  if (f.bookId) list = list.filter(t => t.bookId != null && matchesAny(String(t.bookId), f.bookId!))
   if (f.createdAtStart) list = list.filter(t => t.createdAt >= f.createdAtStart!)
   if (f.createdAtEnd) list = list.filter(t => t.createdAt <= f.createdAtEnd! + ' 23:59')
   return list

@@ -55,8 +55,9 @@ function FilterBar() {
   const { setFilter } = useCrawlStore()
   const [form] = Form.useForm()
 
-  const labelStyle = { minWidth: 60 }
-  const inputStyle = { width: '100%' }
+  // 固定宽度 + 右对齐：不论标签字数多少，输入框起始位置都在同一竖线上
+  const labelStyle = { width: 84, display: 'inline-block' as const, textAlign: 'right' as const }
+  const inputStyle = { width: 220 }
 
   const handleSearch = () => {
     const v = form.getFieldsValue()
@@ -84,13 +85,13 @@ function FilterBar() {
 
           <Col span={12}>
             <Form.Item label={<span style={labelStyle}>任务ID</span>} name="taskId">
-              <Input placeholder="请输入任务ID" style={inputStyle} allowClear />
+              <Input placeholder="请输入任务ID，多个用空格分隔" style={inputStyle} allowClear />
             </Form.Item>
           </Col>
 
           <Col span={12}>
             <Form.Item label={<span style={labelStyle}>ISBN</span>} name="isbn">
-              <Input placeholder="请输入ISBN" style={inputStyle} allowClear />
+              <Input placeholder="请输入ISBN，多个用空格分隔" style={inputStyle} allowClear />
             </Form.Item>
           </Col>
 
@@ -122,7 +123,7 @@ function FilterBar() {
 
           <Col span={12}>
             <Form.Item label={<span style={labelStyle}>图书ID</span>} name="bookId">
-              <Input placeholder="请输入图书ID" style={inputStyle} allowClear />
+              <Input placeholder="请输入图书ID，多个用空格分隔" style={inputStyle} allowClear />
             </Form.Item>
           </Col>
 
