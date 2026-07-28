@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import * as XLSX from 'xlsx'
 import {
-  Card, Table, Button, Input, Select, DatePicker, Space, Tag, Form, Row, Col,
+  Card, Table, Button, Input, Select, DatePicker, Space, Tag, Form,
   Modal, Tabs, Radio, Upload, message, Typography,
 } from 'antd'
 import { PlusOutlined, ExportOutlined, InboxOutlined } from '@ant-design/icons'
@@ -55,9 +55,10 @@ function FilterBar() {
   const { setFilter } = useCrawlStore()
   const [form] = Form.useForm()
 
-  // 固定宽度 + 右对齐：不论标签字数多少，输入框起始位置都在同一竖线上
-  const labelStyle = { width: 84, display: 'inline-block' as const, textAlign: 'right' as const }
-  const inputStyle = { width: 220 }
+  const labelStyle = { width: 90, textAlign: 'right' as const, color: 'rgba(0,0,0,0.88)' }
+  const inputStyle = { width: 280 }
+  const GROUP_GAP = 40
+  const ROW_GAP = 12
 
   const handleSearch = () => {
     const v = form.getFieldsValue()
@@ -79,68 +80,61 @@ function FilterBar() {
   }
 
   return (
-    <Card bordered={false} style={{ margin: '12px 0 0', borderRadius: 4 }} bodyStyle={{ padding: 0 }}>
-      <Form form={form} layout="inline" style={{ padding: '16px 24px 0' }}>
-        <Row gutter={[0, 12]} style={{ width: '100%' }}>
+    <Card bordered={false} style={{ margin: '12px 0 0', borderRadius: 4 }} bodyStyle={{ padding: '16px 24px' }}>
+      {/* horizontal layout：label 与 input 同行；按钮跨行居中在右侧 */}
+      <Form form={form} layout="horizontal" colon>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'max-content max-content 1fr',
+            columnGap: GROUP_GAP,
+            rowGap: ROW_GAP,
+            alignItems: 'center',
+          }}
+        >
+          <Form.Item label={<span style={labelStyle}>任务ID</span>} name="taskId" style={{ margin: 0 }}>
+            <Input placeholder="请输入任务ID，多个用空格分隔" style={inputStyle} allowClear />
+          </Form.Item>
+          <Form.Item label={<span style={labelStyle}>ISBN</span>} name="isbn" style={{ margin: 0 }}>
+            <Input placeholder="请输入ISBN，多个用空格分隔" style={inputStyle} allowClear />
+          </Form.Item>
 
-          <Col span={12}>
-            <Form.Item label={<span style={labelStyle}>任务ID</span>} name="taskId">
-              <Input placeholder="请输入任务ID，多个用空格分隔" style={inputStyle} allowClear />
-            </Form.Item>
-          </Col>
-
-          <Col span={12}>
-            <Form.Item label={<span style={labelStyle}>ISBN</span>} name="isbn">
-              <Input placeholder="请输入ISBN，多个用空格分隔" style={inputStyle} allowClear />
-            </Form.Item>
-          </Col>
-
-          <Col span={12}>
-            <Form.Item label={<span style={labelStyle}>抓取状态</span>} name="status" initialValue="all">
-              <Select
-                style={inputStyle}
-                options={[
-                  { value: 'all', label: '全部' },
-                  ...Object.entries(STATUS_CONFIG)
-                    .filter(([v]) => v !== 'pending')
-                    .map(([v, c]) => ({ value: v, label: c.label })),
-                ]}
-              />
-            </Form.Item>
-          </Col>
-
-          <Col span={12}>
-            <Form.Item label={<span style={labelStyle}>抓取优先级</span>} name="priority" initialValue="all">
-              <Select
-                style={inputStyle}
-                options={[
-                  { value: 'all', label: '全部' },
-                  ...Object.entries(PRIORITY_CONFIG).map(([v, c]) => ({ value: v, label: c.label })),
-                ]}
-              />
-            </Form.Item>
-          </Col>
-
-          <Col span={12}>
-            <Form.Item label={<span style={labelStyle}>图书ID</span>} name="bookId">
-              <Input placeholder="请输入图书ID，多个用空格分隔" style={inputStyle} allowClear />
-            </Form.Item>
-          </Col>
-
-          <Col span={12}>
-            <Form.Item label={<span style={labelStyle}>创建日期</span>} name="createdAtRange">
-              <RangePicker placeholder={['开始日期', '结束日期']} style={inputStyle} />
-            </Form.Item>
-          </Col>
-
-          <Col span={24} style={{ paddingBottom: 16 }}>
+          {/* 按钮：第三列跨3行，垂直居中右对齐 */}
+          <div style={{ gridColumn: 3, gridRow: '1 / 4', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
             <Space>
               <Button type="primary" onClick={handleSearch}>查询</Button>
               <Button onClick={handleReset}>重置</Button>
             </Space>
-          </Col>
+          </div>
 
-        </Row>
+          <Form.Item label={<span style={labelStyle}>抓取状态</span>} name="status" initialValue="all" style={{ margin: 0 }}>
+            <Select
+              style={inputStyle}
+              options={[
+                { value: 'all', label: '全部' },
+                ...Object.entries(STATUS_CONFIG)
+                  .filter(([v]) => v !== 'pending')
+                  .map(([v, c]) => ({ value: v, label: c.label })),
+              ]}
+            />
+          </Form.Item>
+          <Form.Item label={<span style={labelStyle}>抓取优先级</span>} name="priority" initialValue="all" style={{ margin: 0 }}>
+            <Select
+              style={inputStyle}
+              options={[
+                { value: 'all', label: '全部' },
+                ...Object.entries(PRIORITY_CONFIG).map(([v, c]) => ({ value: v, label: c.label })),
+              ]}
+            />
+          </Form.Item>
+
+          <Form.Item label={<span style={labelStyle}>图书ID</span>} name="bookId" style={{ margin: 0 }}>
+            <Input placeholder="请输入图书ID，多个用空格分隔" style={inputStyle} allowClear />
+          </Form.Item>
+          <Form.Item label={<span style={labelStyle}>创建日期</span>} name="createdAtRange" style={{ margin: 0 }}>
+            <RangePicker placeholder={['开始日期', '结束日期']} style={{ width: inputStyle.width + 60 }} />
+          </Form.Item>
+        </div>
       </Form>
     </Card>
   )
