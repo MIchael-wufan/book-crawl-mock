@@ -1,7 +1,7 @@
 import "./global.css"
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ConfigProvider } from 'antd'
 import zhCN from 'antd/locale/zh_CN'
 import AppLayout from './layouts/AppLayout'
@@ -11,7 +11,7 @@ import BookCrawl from './pages/BookCrawl'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ConfigProvider locale={zhCN} theme={{ token: { colorPrimary: '#1890ff' } }}>
-      <BrowserRouter>
+      <HashRouter>
         <Routes>
           <Route element={<AppLayout />}>
             <Route index element={<Navigate to="/online-copy" replace />} />
@@ -25,7 +25,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path="*" element={<Navigate to="/online-copy" replace />} />
           </Route>
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </ConfigProvider>
   </StrictMode>
 )
