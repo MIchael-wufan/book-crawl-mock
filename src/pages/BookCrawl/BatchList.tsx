@@ -25,7 +25,7 @@ const BATCH_STATUS_CONFIG: Record<CrawlBatchStatus, { color: string; label: stri
   completed: { color: 'success',    label: '已完成' },
 }
 
-const parseBatchFile = (buffer: ArrayBuffer): Array<{ isbn: string; priority: CrawlPriority }> => {
+const parseBatchFile = (buffer: ArrayBuffer): Array<{ isbn: string; priority: CrawlPriority; inventoryStatus: string }> => {
   const wb = XLSX.read(buffer, { type: 'array' })
   const ws = wb.Sheets[wb.SheetNames[0]]
   const rows = XLSX.utils.sheet_to_json<string[]>(ws, { header: 1, defval: '' })
@@ -36,8 +36,9 @@ const parseBatchFile = (buffer: ArrayBuffer): Array<{ isbn: string; priority: Cr
   return dataRows
     .filter(r => String(r[0] ?? '').trim())
     .map(r => ({
-      isbn:     String(r[0]).trim(),
-      priority: String(r[1] ?? '').includes('高') ? 'high' : ('low' as CrawlPriority),
+      isbn:            String(r[0]).trim(),
+      priority:        String(r[1] ?? '').includes('高') ? 'high' : ('low' as CrawlPriority),
+      inventoryStatus: String(r[2] ?? '').trim(),
     }))
 }
 
@@ -102,8 +103,17 @@ function FilterBar() {
 }
 
 // ── 手动导入行 ────────────────────────────────────────────────────
-type ManualRow = { isbn: string; priority: CrawlPriority }
-const DEFAULT_ROW: ManualRow = { isbn: '', priority: 'high' }
+type ManualRow = { isbn: string; priority: CrawlPriority; inventoryStatus: string }
+const DEFAULT_ROW: ManualRow = { isbn: '', priority: 'high', inventoryStatus: '' }
+
+// 库内状态选项：无资源 + 近5年年份
+const INVENTORY_OPTIONS = [
+  { value: '',     label: '无资源' },
+  ...Array.from({ length: 5 }, (_, i) => {
+    const y = String(new Date().getFullYear() - i)
+    return { value: y, label: y }
+  }),
+]
 
 function ManualRows({ rows, onChange }: { rows: ManualRow[]; onChange: (rows: ManualRow[]) => void }) {
   const update   = (i: number, patch: Partial<ManualRow>) =>
@@ -116,6 +126,7 @@ function ManualRows({ rows, onChange }: { rows: ManualRow[]; onChange: (rows: Ma
       <div style={{ display: 'flex', gap: 8, marginBottom: 4, color: '#666', fontSize: 13, fontWeight: 500 }}>
         <span style={{ flex: 1 }}>ISBN <span style={{ color: '#ff4d4f' }}>*</span></span>
         <span style={{ width: 140 }}>抓取优先级 <span style={{ color: '#ff4d4f' }}>*</span></span>
+        <span style={{ width: 120 }}>库内状态 <span style={{ color: '#ff4d4f' }}>*</span></span>
         <span style={{ width: 32 }} />
       </div>
       {rows.map((row, i) => (
@@ -134,6 +145,12 @@ function ManualRows({ rows, onChange }: { rows: ManualRow[]; onChange: (rows: Ma
             <Radio value="high">高优</Radio>
             <Radio value="low">普通</Radio>
           </Radio.Group>
+          <Select
+            style={{ width: 120 }}
+            value={row.inventoryStatus}
+            onChange={v => update(i, { inventoryStatus: v })}
+            options={INVENTORY_OPTIONS}
+          />
           <Button
             type="text" size="small" danger disabled={rows.length === 1}
             style={{ width: 32, padding: 0 }} onClick={() => removeRow(i)}
@@ -151,7 +168,7 @@ function AddTaskModal({ open, onClose }: { open: boolean; onClose: () => void })
   const [activeTab, setActiveTab]   = useState<'manual' | 'batch'>('manual')
   const [source, setSource]         = useState<CrawlSource | undefined>(undefined)
   const [manualRows, setManualRows] = useState<ManualRow[]>([{ ...DEFAULT_ROW }])
-  const [batchRows, setBatchRows]   = useState<Array<{ isbn: string; priority: CrawlPriority }>>([])
+  const [batchRows, setBatchRows]   = useState<Array<{ isbn: string; priority: CrawlPriority; inventoryStatus: string }>>([])
   const [fileName, setFileName]     = useState('')
 
   const resetAndClose = () => {
@@ -187,7 +204,7 @@ function AddTaskModal({ open, onClose }: { open: boolean; onClose: () => void })
       children: (
         <div style={{ marginTop: 8 }}>
           <div style={{ marginBottom: 8, fontSize: 12, color: '#888' }}>
-            文件表头：<code>ISBN,抓取优先级</code>，优先级填「高优」或「普通」，支持 XLSX / CSV / TSV
+            文件表头：<code>ISBN,抓取优先级,库内状态</code>，优先级填「高优」或「普通」，库内状态填「无资源」或年份（如 2025），支持 XLSX / CSV / TSV
           </div>
           <Dragger
             accept=".xlsx,.csv,.tsv,.txt"

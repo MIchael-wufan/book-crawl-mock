@@ -174,8 +174,9 @@ export default function BookCrawl() {
   const columns: TableColumnsType<CrawlTask> = [
     { title: '任务块ID', dataIndex: 'batchId', width: 100 },
     { title: '任务ID',   dataIndex: 'id',       width: 90  },
-    { title: '抓取来源', dataIndex: 'source',     width: 100 },
-    { title: '创建时间', dataIndex: 'createdAt',  width: 160 },
+    { title: '抓取来源', dataIndex: 'source',          width: 100 },
+    { title: '库内状态', dataIndex: 'inventoryStatus', width: 100, render: (v?: string) => v || '无资源' },
+    { title: '创建时间', dataIndex: 'createdAt',       width: 160 },
     { title: 'ISBN',     dataIndex: 'isbn',       width: 150 },
     {
       title: '抓取优先级', dataIndex: 'priority', width: 110,

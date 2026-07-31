@@ -71,6 +71,8 @@ export interface CrawlTask {
   priority: CrawlPriority
   batchId: number
   source: CrawlSource
+  /** 库内状态：无资源 | 年份字符串（如 "2025"） */
+  inventoryStatus?: string
   /** 抓取成功后由后端返回的图书 ID */
   bookId?: number
   createdAt: string

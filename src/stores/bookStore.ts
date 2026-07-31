@@ -52,7 +52,7 @@ interface CrawlState {
   batchFilter: CrawlBatchFilterParams
   setFilter: (f: Partial<CrawlFilterParams>) => void
   setBatchFilter: (f: Partial<CrawlBatchFilterParams>) => void
-  addTasksBatch: (rows: Array<{ isbn: string; priority: CrawlPriority }>, source: CrawlSource) => void
+  addTasksBatch: (rows: Array<{ isbn: string; priority: CrawlPriority; inventoryStatus?: string }>, source: CrawlSource) => void
   cancelBatch: (batchId: number) => void
 }
 
@@ -141,6 +141,7 @@ export const useCrawlStore = create<
       status: 'pending' as const,
       batchId,
       source,
+      inventoryStatus: r.inventoryStatus,
       createdAt: now,
     }))
     set(s => ({ batches: [newBatch, ...s.batches], tasks: [...newTasks, ...s.tasks] }))
