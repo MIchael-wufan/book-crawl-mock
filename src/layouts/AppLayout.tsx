@@ -12,7 +12,8 @@ const NAV_ITEMS = [
     key: '/book-crawl',
     label: '图书抓取',
     children: [
-      { key: '/book-crawl/list', label: '抓取列表' },
+      { key: '/book-crawl/batches', label: '任务块列表' },
+      { key: '/book-crawl/list',    label: '任务列表'   },
     ],
   },
 ]

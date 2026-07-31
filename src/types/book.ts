@@ -53,12 +53,24 @@ export interface BookSearchParams {
 
 export type CrawlTaskStatus = 'pending' | 'running' | 'success' | 'failed'
 export type CrawlPriority = 'high' | 'low'
+export type CrawlSource = 'kd' | 'kk' | 'zyjl'
+/** 任务块状态：由所属任务推导，不落盘 */
+export type CrawlBatchStatus = 'running' | 'completed'
+
+export interface CrawlBatch {
+  id: number
+  source: CrawlSource
+  createdAt: string
+  finishedAt?: string
+}
 
 export interface CrawlTask {
   id: number
   isbn: string
   status: CrawlTaskStatus
   priority: CrawlPriority
+  batchId: number
+  source: CrawlSource
   /** 抓取成功后由后端返回的图书 ID */
   bookId?: number
   createdAt: string
@@ -66,13 +78,25 @@ export interface CrawlTask {
   errorMsg?: string
 }
 
-/** 筛选参数 */
+/** 任务列表筛选参数 */
 export interface CrawlFilterParams {
   taskId?: string
   isbn?: string
   status?: CrawlTaskStatus | 'all'
   priority?: CrawlPriority | 'all'
+  source?: CrawlSource | 'all'
+  batchId?: string
+  batchStatus?: CrawlBatchStatus | 'all'
   bookId?: string
+  createdAtStart?: string
+  createdAtEnd?: string
+}
+
+/** 任务块列表筛选参数 */
+export interface CrawlBatchFilterParams {
+  batchId?: string
+  batchStatus?: CrawlBatchStatus | 'all'
+  source?: CrawlSource | 'all'
   createdAtStart?: string
   createdAtEnd?: string
 }

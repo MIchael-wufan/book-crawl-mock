@@ -1,4 +1,4 @@
-import type { Book, CrawlTask } from '../types/book'
+import type { Book, CrawlTask, CrawlBatch } from '../types/book'
 
 // ── 图书列表 mock（10 条典型 case）────────────────────────────────
 export const MOCK_BOOKS: Book[] = [
@@ -42,33 +42,45 @@ export const queryBooks = (
 }
 
 // ── 抓取任务 mock（6 个典型 case，无「等待中」）────────────────────
+export const MOCK_CRAWL_BATCHES: CrawlBatch[] = [
+  { id: 2001, source: 'kd',   createdAt: '2024-07-25 09:50' },
+  { id: 2002, source: 'kk',   createdAt: '2024-07-24 14:28', finishedAt: '2024-07-24 14:35' },
+  { id: 2003, source: 'zyjl', createdAt: '2024-07-22 16:40', finishedAt: '2024-07-22 16:50' },
+]
+
 export const MOCK_CRAWL_TASKS: CrawlTask[] = [
   {
     id: 1001, isbn: '9787107321456', status: 'running', priority: 'high',
+    batchId: 2001, source: 'kd',
     createdAt: '2024-07-25 10:00',
   },
   {
     id: 1002, isbn: '9787107298745', status: 'success', priority: 'high',
+    batchId: 2002, source: 'kk',
     bookId: 4785173,
     createdAt: '2024-07-24 14:30', finishedAt: '2024-07-24 14:35',
   },
   {
     id: 1003, isbn: '9787107256301', status: 'success', priority: 'low',
+    batchId: 2002, source: 'kk',
     bookId: 4801022,
     createdAt: '2024-07-23 09:15', finishedAt: '2024-07-23 09:18',
   },
   {
     id: 1004, isbn: '9787107312789', status: 'failed', priority: 'high',
+    batchId: 2003, source: 'zyjl',
     createdAt: '2024-07-22 16:45', finishedAt: '2024-07-22 16:50',
     errorMsg: '网络超时，请重试',
   },
   {
     id: 1005, isbn: '9787107334512', status: 'failed', priority: 'low',
+    batchId: 2003, source: 'zyjl',
     createdAt: '2024-07-21 11:00', finishedAt: '2024-07-21 11:02',
     errorMsg: 'ISBN 在数据源中未找到',
   },
   {
     id: 1006, isbn: '9787107278934', status: 'running', priority: 'low',
+    batchId: 2001, source: 'kd',
     createdAt: '2024-07-25 09:50',
   },
 ]
