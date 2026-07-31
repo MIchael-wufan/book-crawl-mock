@@ -15,10 +15,15 @@ const { Dragger } = Upload
 
 const SOURCE_OPTIONS: { value: CrawlSource | 'all'; label: string }[] = [
   { value: 'all',  label: '全部' },
+  { value: 'none', label: '不限' },
   { value: 'kd',   label: 'kd'   },
   { value: 'kk',   label: 'kk'   },
   { value: 'zyjl', label: 'zyjl' },
 ]
+
+const SOURCE_LABEL: Record<CrawlSource, string> = {
+  none: '不限', kd: 'kd', kk: 'kk', zyjl: 'zyjl',
+}
 
 const BATCH_STATUS_CONFIG: Record<CrawlBatchStatus, { color: string; label: string }> = {
   running:   { color: 'processing', label: '抓取中' },
@@ -241,13 +246,16 @@ function AddTaskModal({ open, onClose }: { open: boolean; onClose: () => void })
       okText="确认" cancelText="取消" width={480} destroyOnClose
     >
       <Form layout="horizontal" colon style={{ marginBottom: 8 }}>
-        <Form.Item label="抓取来源" required style={{ margin: '8px 0 4px' }}>
+        <Form.Item label="指定抓取来源" required style={{ margin: '8px 0 4px' }}>
           <Select
             style={{ width: 200 }}
             placeholder="请选择来源"
             value={source}
             onChange={v => setSource(v)}
-            options={SOURCE_OPTIONS.filter(o => o.value !== 'all')}
+            options={[
+              { value: 'none', label: '不限' },
+              ...SOURCE_OPTIONS.filter(o => o.value !== 'all'),
+            ]}
           />
         </Form.Item>
       </Form>
@@ -283,7 +291,7 @@ export default function BatchList() {
       title: '任务块ID', dataIndex: 'id', width: 100,
       render: (id: number) => id,
     },
-    { title: '抓取来源', dataIndex: 'source', width: 100 },
+    { title: '抓取来源', dataIndex: 'source', width: 100, render: (v: CrawlSource) => SOURCE_LABEL[v] ?? v },
     { title: '创建时间', dataIndex: 'createdAt',  width: 160 },
     { title: '完成时间', dataIndex: 'finishedAt', width: 160, render: (v?: string) => v ?? '-' },
     { title: '任务数',   dataIndex: 'taskCount',  width: 80  },
