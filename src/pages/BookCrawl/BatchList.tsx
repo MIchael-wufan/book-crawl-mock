@@ -14,15 +14,15 @@ const { RangePicker } = DatePicker
 const { Dragger } = Upload
 
 const SOURCE_OPTIONS: { value: CrawlSource | 'all'; label: string }[] = [
-  { value: 'all',  label: '全部' },
-  { value: 'none', label: '不限' },
-  { value: 'kd',   label: 'kd'   },
-  { value: 'kk',   label: 'kk'   },
-  { value: 'zyjl', label: 'zyjl' },
+  { value: 'all',       label: '全部'  },
+  { value: 'unlimited', label: '不限'  },
+  { value: 'kd',        label: 'kd'    },
+  { value: 'kk',        label: 'kk'    },
+  { value: 'zyjl',      label: 'zyjl'  },
 ]
 
 const SOURCE_LABEL: Record<CrawlSource, string> = {
-  none: '不限', kd: 'kd', kk: 'kk', zyjl: 'zyjl',
+  unlimited: '不限', kd: 'kd', kk: 'kk', zyjl: 'zyjl',
 }
 
 const BATCH_STATUS_CONFIG: Record<CrawlBatchStatus, { color: string; label: string }> = {
@@ -113,7 +113,7 @@ const DEFAULT_ROW: ManualRow = { isbn: '', priority: 'high', inventoryStatus: ''
 
 // 库内状态选项：无资源 + 近5年年份
 const INVENTORY_OPTIONS = [
-  { value: '',     label: '无资源' },
+  { value: 'none', label: '无资源' },
   ...Array.from({ length: 5 }, (_, i) => {
     const y = String(new Date().getFullYear() - i)
     return { value: y, label: y }
@@ -263,7 +263,7 @@ function AddTaskModal({ open, onClose }: { open: boolean; onClose: () => void })
 
 // ── 主页面 ────────────────────────────────────────────────────────
 export default function BatchList() {
-  const { filteredBatches, tasks } = useCrawlStore()
+  const { filteredBatches, cancelBatch, tasks } = useCrawlStore()
   const [modalOpen, setModalOpen] = useState(false)
   const navigate = useNavigate()
 
@@ -297,10 +297,13 @@ export default function BatchList() {
       render: (v: CrawlBatchStatus) => <Tag color={BATCH_STATUS_CONFIG[v].color}>{BATCH_STATUS_CONFIG[v].label}</Tag>,
     },
     {
-      title: '操作', width: 180,
+      title: '操作', width: 200,
       render: (_, record) => (
         <Space size="small">
           <Button size="small" onClick={() => navigate(`/book-crawl/list?batchId=${record.id}`)}>查看任务</Button>
+          {record.status === 'running' && (
+            <Button size="small" danger onClick={() => cancelBatch(record.id)}>取消任务</Button>
+          )}
           {record.status === 'completed' && (
             <Button size="small" onClick={() => handleExportBatch(record.id)}>导出任务</Button>
           )}
