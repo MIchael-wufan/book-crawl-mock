@@ -293,7 +293,7 @@ export default function BatchList() {
     { title: '抓取来源', dataIndex: 'source', width: 100, render: (v: CrawlSource) => SOURCE_LABEL[v] ?? v },
     { title: '创建时间', dataIndex: 'createdAt',  width: 160 },
     { title: '完成时间', dataIndex: 'finishedAt', width: 160, render: (v?: string) => v ?? '-' },
-    { title: '任务数',   dataIndex: 'taskCount',  width: 80  },
+
     {
       title: '完成情况', width: 100,
       render: (_: unknown, record: { successCount: number; taskCount: number }) =>
