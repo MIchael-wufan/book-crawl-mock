@@ -34,11 +34,11 @@ const BATCH_STATUS_OPTIONS = [
 ]
 
 const SOURCE_OPTIONS: { value: CrawlSource | 'all'; label: string }[] = [
-  { value: 'all',  label: '全部' },
-  { value: 'none', label: '不限' },
-  { value: 'kd',   label: 'kd'   },
-  { value: 'kk',   label: 'kk'   },
-  { value: 'zyjl', label: 'zyjl' },
+  { value: 'all',       label: '全部' },
+  { value: 'unlimited', label: '不限' },
+  { value: 'kd',        label: 'kd'   },
+  { value: 'kk',        label: 'kk'   },
+  { value: 'zyjl',      label: 'zyjl' },
 ]
 
 // ── 筛选区 ────────────────────────────────────────────────────────
