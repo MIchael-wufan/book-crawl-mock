@@ -61,6 +61,8 @@ let nextBatchId = MOCK_CRAWL_BATCHES.length + 2001 + 1
 
 // 已取消的任务 ID，simulateProgress 检查此集合决定是否继续推进
 const cancelledTaskIds = new Set<number>()
+// 正在取消中的任务块 ID（已发出取消指令，等待后端回调）
+const cancellingBatchIds = new Set<number>()
 
 // 支持空格 / 英文逗号 / 中文逗号分隔的多值输入，token 间为「任一命中」
 const splitTokens = (raw: string): string[] => raw.split(/[\s,，]+/).filter(Boolean)
@@ -71,6 +73,7 @@ const matchesAny = (value: string, raw: string): boolean => {
 
 const deriveBatchStatus = (tasks: CrawlTask[], batchId: number): CrawlBatchStatus => {
   const batchTasks = tasks.filter(t => t.batchId === batchId)
+  if (cancellingBatchIds.has(batchId)) return 'cancelling'
   if (batchTasks.some(t => t.status === 'pending' || t.status === 'running')) return 'running'
   if (batchTasks.every(t => t.status === 'cancelled' || t.status === 'failed' || t.status === 'success') &&
       batchTasks.some(t => t.status === 'cancelled')) return 'cancelled'
@@ -158,19 +161,34 @@ export const useCrawlStore = create<
   },
 
   cancelBatch: (batchId) => {
-    // 只中止「队列中」（pending）的任务；「抓取中」（running）任务继续跑完后自行返回结果
+    // 立即进入「取消中」状态，mock 延迟 2 秒模拟后端收到抓取侧回调
+    cancellingBatchIds.add(batchId)
+    // 标记 pending 任务 ID，simulateProgress 检查后停止推进
     get().tasks
       .filter(t => t.batchId === batchId && t.status === 'pending')
       .forEach(t => cancelledTaskIds.add(t.id))
-    const finishedAt = new Date().toISOString().slice(0, 16).replace('T', ' ')
-    set(s => ({
-      tasks: s.tasks.map(t =>
-        t.batchId === batchId && t.status === 'pending'
-          ? { ...t, status: 'cancelled' as const, finishedAt, errorMsg: '任务已取消' }
-          : t
-      ),
-      // 任务块 finishedAt 由最后一个终态任务完成时补填，此处不提前写入
-    }))
+    // 触发 re-render 以展示「取消中」状态
+    set(s => ({ tasks: [...s.tasks] }))
+    setTimeout(() => {
+      // 模拟后端回调：pending 任务改为 cancelled，移除 cancelling 标记
+      cancellingBatchIds.delete(batchId)
+      const finishedAt = new Date().toISOString().slice(0, 16).replace('T', ' ')
+      set(s => {
+        const tasks = s.tasks.map(t =>
+          t.batchId === batchId && t.status === 'pending'
+            ? { ...t, status: 'cancelled' as const, finishedAt, errorMsg: '任务已取消' }
+            : t
+        )
+        // 若所有任务已终态，补填 batch finishedAt
+        const allDone = tasks
+          .filter(t => t.batchId === batchId)
+          .every(t => t.status === 'success' || t.status === 'failed' || t.status === 'cancelled')
+        const batches = allDone
+          ? s.batches.map(b => b.id === batchId ? { ...b, finishedAt } : b)
+          : s.batches
+        return { tasks, batches }
+      })
+    }, 2000)
   },
 }))
 

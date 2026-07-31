@@ -55,7 +55,7 @@ export type CrawlTaskStatus = 'pending' | 'running' | 'success' | 'failed' | 'ca
 export type CrawlPriority = 'high' | 'low' | 'lowest'
 export type CrawlSource = 'unlimited' | 'kd' | 'kk' | 'zyjl'
 /** 任务块状态：由所属任务推导，不落盘 */
-export type CrawlBatchStatus = 'running' | 'completed' | 'cancelled'
+export type CrawlBatchStatus = 'running' | 'cancelling' | 'completed' | 'cancelled'
 
 export interface CrawlBatch {
   id: number

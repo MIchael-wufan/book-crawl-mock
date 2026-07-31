@@ -15,7 +15,7 @@ const BOOK_DETAIL_URL = (bookId: number) =>
   `https://merc.yuanfudao.com/mark-qs/book/list?source=1&ids=${bookId}`
 
 const STATUS_CONFIG: Record<CrawlTaskStatus, { color: string; label: string }> = {
-  pending:   { color: 'default',   label: '等待中' },
+  pending:   { color: 'default',   label: '队列中' },
   running:   { color: 'processing', label: '抓取中' },
   success:   { color: 'success',   label: '成功'   },
   failed:    { color: 'error',     label: '失败'   },
@@ -114,7 +114,6 @@ function FilterBar({ initBatchId }: { initBatchId?: string }) {
                 options={[
                   { value: 'all', label: '全部' },
                   ...Object.entries(STATUS_CONFIG)
-                    .filter(([v]) => v !== 'pending')
                     .map(([v, c]) => ({ value: v, label: c.label })),
                 ]}
               />

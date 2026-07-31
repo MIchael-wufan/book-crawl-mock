@@ -26,9 +26,10 @@ const SOURCE_LABEL: Record<CrawlSource, string> = {
 }
 
 const BATCH_STATUS_CONFIG: Record<CrawlBatchStatus, { color: string; label: string }> = {
-  running:   { color: 'processing', label: '抓取中' },
-  completed: { color: 'success',    label: '已完成' },
-  cancelled: { color: 'default',    label: '已取消' },
+  running:    { color: 'processing', label: '抓取中' },
+  cancelling: { color: 'warning',    label: '取消中' },
+  completed:  { color: 'success',    label: '已完成' },
+  cancelled:  { color: 'default',    label: '已取消' },
 }
 
 const parseBatchFile = (buffer: ArrayBuffer): Array<{ isbn: string; priority: CrawlPriority; inventoryStatus: string }> => {
@@ -310,6 +311,9 @@ export default function BatchList() {
           <Button size="small" onClick={() => navigate(`/book-crawl/list?batchId=${record.id}`)}>查看任务</Button>
           {record.status === 'running' && (
             <Button size="small" danger onClick={() => cancelBatch(record.id)}>取消任务</Button>
+          )}
+          {record.status === 'cancelling' && (
+            <Button size="small" danger disabled>取消中...</Button>
           )}
           {(record.status === 'completed' || record.status === 'cancelled') && (
             <Button size="small" onClick={() => handleExportBatch(record.id)}>导出任务</Button>
