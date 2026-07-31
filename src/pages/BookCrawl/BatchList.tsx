@@ -131,7 +131,7 @@ function ManualRows({ rows, onChange }: { rows: ManualRow[]; onChange: (rows: Ma
     <div style={{ marginTop: 8 }}>
       <div style={{ display: 'flex', gap: 8, marginBottom: 4, color: '#666', fontSize: 13, fontWeight: 500 }}>
         <span style={{ flex: 1 }}>ISBN <span style={{ color: '#ff4d4f' }}>*</span></span>
-        <span style={{ width: 140 }}>抓取优先级 <span style={{ color: '#ff4d4f' }}>*</span></span>
+        <span style={{ width: 190 }}>抓取优先级 <span style={{ color: '#ff4d4f' }}>*</span></span>
         <span style={{ width: 120 }}>库内状态 <span style={{ color: '#ff4d4f' }}>*</span></span>
         <span style={{ width: 32 }} />
       </div>
@@ -144,7 +144,7 @@ function ManualRows({ rows, onChange }: { rows: ManualRow[]; onChange: (rows: Ma
             onChange={e => update(i, { isbn: e.target.value })}
           />
           <Radio.Group
-            style={{ width: 140, whiteSpace: 'nowrap' }}
+            style={{ width: 190, whiteSpace: 'nowrap' }}
             value={row.priority}
             onChange={e => update(i, { priority: e.target.value })}
           >
@@ -245,7 +245,7 @@ function AddTaskModal({ open, onClose }: { open: boolean; onClose: () => void })
   return (
     <Modal
       title="添加抓取任务" open={open} onOk={handleOk} onCancel={resetAndClose}
-      okText="确认" cancelText="取消" width={480} destroyOnClose
+      okText="确认" cancelText="取消" width={580} destroyOnClose
     >
       <Form layout="horizontal" colon style={{ marginBottom: 8 }}>
         <Form.Item label="指定抓取来源" required style={{ margin: '8px 0 4px' }}>
