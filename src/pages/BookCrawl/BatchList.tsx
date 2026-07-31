@@ -28,6 +28,7 @@ const SOURCE_LABEL: Record<CrawlSource, string> = {
 const BATCH_STATUS_CONFIG: Record<CrawlBatchStatus, { color: string; label: string }> = {
   running:   { color: 'processing', label: '抓取中' },
   completed: { color: 'success',    label: '已完成' },
+  cancelled: { color: 'default',    label: '已取消' },
 }
 
 const parseBatchFile = (buffer: ArrayBuffer): Array<{ isbn: string; priority: CrawlPriority; inventoryStatus: string }> => {
@@ -42,7 +43,7 @@ const parseBatchFile = (buffer: ArrayBuffer): Array<{ isbn: string; priority: Cr
     .filter(r => String(r[0] ?? '').trim())
     .map(r => ({
       isbn:            String(r[0]).trim(),
-      priority:        String(r[1] ?? '').includes('高') ? 'high' : ('low' as CrawlPriority),
+      priority:        String(r[1] ?? '').includes('高') ? 'high' : String(r[1] ?? '').includes('低') ? 'lowest' : ('low' as CrawlPriority),
       inventoryStatus: String(r[2] ?? '').trim(),
     }))
 }
@@ -80,7 +81,7 @@ function FilterBar() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'max-content max-content', columnGap: GROUP_GAP, rowGap: ROW_GAP }}>
             <Form.Item label={<span style={labelStyle}>任务块ID</span>} name="batchId" style={{ margin: 0 }}>
-              <Input placeholder="请输入任务块ID" style={inputStyle} allowClear />
+              <Input placeholder="请输入任务块ID，多个用空格分隔" style={inputStyle} allowClear />
             </Form.Item>
             <Form.Item label={<span style={labelStyle}>任务块状态</span>} name="batchStatus" initialValue="all" style={{ margin: 0 }}>
               <Select style={inputStyle} options={[
@@ -149,6 +150,7 @@ function ManualRows({ rows, onChange }: { rows: ManualRow[]; onChange: (rows: Ma
           >
             <Radio value="high">高优</Radio>
             <Radio value="low">普通</Radio>
+            <Radio value="lowest">低优</Radio>
           </Radio.Group>
           <Select
             style={{ width: 120 }}
@@ -209,7 +211,7 @@ function AddTaskModal({ open, onClose }: { open: boolean; onClose: () => void })
       children: (
         <div style={{ marginTop: 8 }}>
           <div style={{ marginBottom: 8, fontSize: 12, color: '#888' }}>
-            文件表头：<code>ISBN,抓取优先级,库内状态</code>，优先级填「高优」或「普通」，库内状态填「无资源」或年份（如 2025），支持 XLSX / CSV / TSV
+            文件表头：<code>ISBN,抓取优先级,库内状态</code>，优先级填「高优」、「普通」或「低优」，库内状态填「无资源」或年份（如 2025），支持 XLSX / CSV / TSV
           </div>
           <Dragger
             accept=".xlsx,.csv,.tsv,.txt"
@@ -283,7 +285,7 @@ export default function BatchList() {
     a.click(); URL.revokeObjectURL(a.href)
   }
 
-  const columns: TableColumnsType<CrawlBatch & { status: CrawlBatchStatus; taskCount: number }> = [
+  const columns: TableColumnsType<CrawlBatch & { status: CrawlBatchStatus; taskCount: number; successCount: number }> = [
     {
       title: '任务块ID', dataIndex: 'id', width: 100,
       render: (id: number) => id,
@@ -293,18 +295,23 @@ export default function BatchList() {
     { title: '完成时间', dataIndex: 'finishedAt', width: 160, render: (v?: string) => v ?? '-' },
     { title: '任务数',   dataIndex: 'taskCount',  width: 80  },
     {
+      title: '完成情况', width: 100,
+      render: (_: unknown, record: { successCount: number; taskCount: number }) =>
+        `${record.successCount} / ${record.taskCount}`,
+    },
+    {
       title: '状态', dataIndex: 'status', width: 100,
       render: (v: CrawlBatchStatus) => <Tag color={BATCH_STATUS_CONFIG[v].color}>{BATCH_STATUS_CONFIG[v].label}</Tag>,
     },
     {
       title: '操作', width: 200,
-      render: (_, record) => (
+      render: (_: unknown, record: CrawlBatch & { status: CrawlBatchStatus }) => (
         <Space size="small">
           <Button size="small" onClick={() => navigate(`/book-crawl/list?batchId=${record.id}`)}>查看任务</Button>
           {record.status === 'running' && (
             <Button size="small" danger onClick={() => cancelBatch(record.id)}>取消任务</Button>
           )}
-          {record.status === 'completed' && (
+          {(record.status === 'completed' || record.status === 'cancelled') && (
             <Button size="small" onClick={() => handleExportBatch(record.id)}>导出任务</Button>
           )}
         </Space>

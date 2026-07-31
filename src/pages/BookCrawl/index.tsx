@@ -19,12 +19,13 @@ const STATUS_CONFIG: Record<CrawlTaskStatus, { color: string; label: string }> =
   running:   { color: 'processing', label: '抓取中' },
   success:   { color: 'success',   label: '成功'   },
   failed:    { color: 'error',     label: '失败'   },
-  cancelled: { color: 'warning',   label: '已终止' },
+  cancelled: { color: 'warning',   label: '已取消' },
 }
 
 const PRIORITY_CONFIG: Record<CrawlPriority, { color: string; label: string }> = {
-  high: { color: 'red',     label: '高优' },
-  low:  { color: 'default', label: '普通' },
+  high:   { color: 'red',     label: '高优' },
+  low:    { color: 'orange',  label: '普通' },
+  lowest: { color: 'default', label: '低优' },
 }
 
 const BATCH_STATUS_OPTIONS = [
@@ -97,7 +98,7 @@ function FilterBar({ initBatchId }: { initBatchId?: string }) {
               <Input placeholder="请输入任务ID，多个用空格分隔" style={inputStyle} allowClear />
             </Form.Item>
             <Form.Item label={<span style={labelStyle}>任务块ID</span>} name="batchId" style={{ margin: 0 }}>
-              <Input placeholder="请输入任务块ID" style={inputStyle} allowClear />
+              <Input placeholder="请输入任务块ID，多个用空格分隔" style={inputStyle} allowClear />
             </Form.Item>
 
             <Form.Item label={<span style={labelStyle}>ISBN</span>} name="isbn" style={{ margin: 0 }}>
@@ -192,6 +193,16 @@ export default function BookCrawl() {
       render: (bookId?: number) => bookId
         ? <Link href={BOOK_DETAIL_URL(bookId)} target="_blank" style={{ color: '#1890ff' }}>{bookId}</Link>
         : '-',
+    },
+    {
+      title: '图书标题', dataIndex: 'bookTitle', width: 180,
+      render: (v?: string) => v
+        ? <span style={{ whiteSpace: 'normal', wordBreak: 'break-all' }}>{v}</span>
+        : '-',
+    },
+    {
+      title: '图书年份', dataIndex: 'bookYear', width: 90,
+      render: (v?: string) => v ?? '-',
     },
   ]
 

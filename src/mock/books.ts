@@ -41,11 +41,12 @@ export const queryBooks = (
   return { list: list.slice(start, start + pageSize), total }
 }
 
-// ── 抓取任务 mock（6 个典型 case，无「等待中」）────────────────────
+// ── 抓取任务 mock ──────────────────────────────────────────────────
 export const MOCK_CRAWL_BATCHES: CrawlBatch[] = [
-  { id: 2001, source: 'kd',   createdAt: '2024-07-25 09:50' },
-  { id: 2002, source: 'kk',   createdAt: '2024-07-24 14:28', finishedAt: '2024-07-24 14:35' },
-  { id: 2003, source: 'zyjl', createdAt: '2024-07-22 16:40', finishedAt: '2024-07-22 16:50' },
+  { id: 2001, source: 'kd',        createdAt: '2024-07-25 09:50' },
+  { id: 2002, source: 'kk',        createdAt: '2024-07-24 14:28', finishedAt: '2024-07-24 14:35' },
+  { id: 2003, source: 'zyjl',      createdAt: '2024-07-22 16:40', finishedAt: '2024-07-22 16:50' },
+  { id: 2004, source: 'unlimited', createdAt: '2024-07-20 10:00', finishedAt: '2024-07-20 10:05' },
 ]
 
 export const MOCK_CRAWL_TASKS: CrawlTask[] = [
@@ -58,12 +59,16 @@ export const MOCK_CRAWL_TASKS: CrawlTask[] = [
     id: 1002, isbn: '9787107298745', status: 'success', priority: 'high',
     batchId: 2002, source: 'kk',
     bookId: 4785173,
+    bookTitle: '数学八年级下册（人教版）',
+    bookYear: '2023',
     createdAt: '2024-07-24 14:30', finishedAt: '2024-07-24 14:35',
   },
   {
     id: 1003, isbn: '9787107256301', status: 'success', priority: 'low',
     batchId: 2002, source: 'kk',
     bookId: 4801022,
+    bookTitle: '英语高一全册（北师大版）',
+    bookYear: '2024',
     createdAt: '2024-07-23 09:15', finishedAt: '2024-07-23 09:18',
   },
   {
@@ -82,5 +87,37 @@ export const MOCK_CRAWL_TASKS: CrawlTask[] = [
     id: 1006, isbn: '9787107278934', status: 'running', priority: 'low',
     batchId: 2001, source: 'kd',
     createdAt: '2024-07-25 09:50',
+  },
+  // 已取消任务块 2004 的任务：1 条成功、2 条已取消
+  {
+    id: 1007, isbn: '9787107245678', status: 'success', priority: 'high',
+    batchId: 2004, source: 'unlimited',
+    bookId: 4820011,
+    bookTitle: '历史七年级下册（人教版）',
+    bookYear: '2023',
+    createdAt: '2024-07-20 10:00', finishedAt: '2024-07-20 10:03',
+  },
+  {
+    id: 1008, isbn: '9787107356789', status: 'cancelled', priority: 'low',
+    batchId: 2004, source: 'unlimited',
+    createdAt: '2024-07-20 10:00', finishedAt: '2024-07-20 10:05',
+    errorMsg: '任务已取消',
+  },
+  {
+    id: 1009, isbn: '9787107389012', status: 'cancelled', priority: 'low',
+    batchId: 2004, source: 'unlimited',
+    createdAt: '2024-07-20 10:00', finishedAt: '2024-07-20 10:05',
+    errorMsg: '任务已取消',
+  },
+  {
+    id: 1010, isbn: '9787107401234', status: 'failed', priority: 'lowest',
+    batchId: 2003, source: 'zyjl',
+    createdAt: '2024-07-22 16:45', finishedAt: '2024-07-22 16:52',
+    errorMsg: '数据源暂不支持该书目',
+  },
+  {
+    id: 1011, isbn: '9787107412345', status: 'running', priority: 'lowest',
+    batchId: 2001, source: 'kd',
+    createdAt: '2024-07-25 09:55',
   },
 ]

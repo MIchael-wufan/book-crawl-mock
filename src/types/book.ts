@@ -52,10 +52,10 @@ export interface BookSearchParams {
 }
 
 export type CrawlTaskStatus = 'pending' | 'running' | 'success' | 'failed' | 'cancelled'
-export type CrawlPriority = 'high' | 'low'
+export type CrawlPriority = 'high' | 'low' | 'lowest'
 export type CrawlSource = 'unlimited' | 'kd' | 'kk' | 'zyjl'
 /** 任务块状态：由所属任务推导，不落盘 */
-export type CrawlBatchStatus = 'running' | 'completed'
+export type CrawlBatchStatus = 'running' | 'completed' | 'cancelled'
 
 export interface CrawlBatch {
   id: number
@@ -75,6 +75,10 @@ export interface CrawlTask {
   inventoryStatus?: string
   /** 抓取成功后由后端返回的图书 ID */
   bookId?: number
+  /** 抓取成功后返回的图书标题 */
+  bookTitle?: string
+  /** 抓取成功后返回的图书年份 */
+  bookYear?: string
   createdAt: string
   finishedAt?: string
   errorMsg?: string

@@ -69,9 +69,13 @@ const matchesAny = (value: string, raw: string): boolean => {
   return tokens.length === 0 || tokens.some(token => value.includes(token))
 }
 
-const deriveBatchStatus = (tasks: CrawlTask[], batchId: number): CrawlBatchStatus =>
-  tasks.filter(t => t.batchId === batchId).some(t => t.status === 'pending' || t.status === 'running')
-    ? 'running' : 'completed'
+const deriveBatchStatus = (tasks: CrawlTask[], batchId: number): CrawlBatchStatus => {
+  const batchTasks = tasks.filter(t => t.batchId === batchId)
+  if (batchTasks.some(t => t.status === 'pending' || t.status === 'running')) return 'running'
+  if (batchTasks.every(t => t.status === 'cancelled' || t.status === 'failed' || t.status === 'success') &&
+      batchTasks.some(t => t.status === 'cancelled')) return 'cancelled'
+  return 'completed'
+}
 
 const applyFilter = (tasks: CrawlTask[], batches: CrawlBatch[], f: CrawlFilterParams): CrawlTask[] => {
   let list = [...tasks]
@@ -99,12 +103,17 @@ const applyBatchFilter = (
   batches: CrawlBatch[],
   tasks: CrawlTask[],
   f: CrawlBatchFilterParams
-): Array<CrawlBatch & { status: CrawlBatchStatus; taskCount: number }> => {
-  let list = batches.map(b => ({
-    ...b,
-    status: deriveBatchStatus(tasks, b.id),
-    taskCount: tasks.filter(t => t.batchId === b.id).length,
-  }))
+): Array<CrawlBatch & { status: CrawlBatchStatus; taskCount: number; successCount: number }> => {
+  let list = batches.map(b => {
+    const batchTasks = tasks.filter(t => t.batchId === b.id)
+    return {
+      ...b,
+      status: deriveBatchStatus(tasks, b.id),
+      taskCount: batchTasks.length,
+      // 已取消任务视为失败，不计入成功数
+      successCount: batchTasks.filter(t => t.status === 'success').length,
+    }
+  })
   if (f.batchId) list = list.filter(b => matchesAny(String(b.id), f.batchId!))
   if (f.batchStatus && f.batchStatus !== 'all') list = list.filter(b => b.status === f.batchStatus)
   if (f.source && f.source !== 'all') list = list.filter(b => b.source === f.source)
@@ -116,7 +125,7 @@ const applyBatchFilter = (
 export const useCrawlStore = create<
   CrawlState & {
     filteredTasks: () => CrawlTask[]
-    filteredBatches: () => Array<CrawlBatch & { status: CrawlBatchStatus; taskCount: number }>
+    filteredBatches: () => Array<CrawlBatch & { status: CrawlBatchStatus; taskCount: number; successCount: number }>
   }
 >((set, get) => ({
   tasks: [...MOCK_CRAWL_TASKS],
@@ -149,17 +158,18 @@ export const useCrawlStore = create<
   },
 
   cancelBatch: (batchId) => {
-    // 标记所有待处理/进行中任务为已取消（用 failed 表示）
+    // 只中止「队列中」（pending）的任务；「抓取中」（running）任务继续跑完后自行返回结果
     get().tasks
-      .filter(t => t.batchId === batchId && (t.status === 'pending' || t.status === 'running'))
+      .filter(t => t.batchId === batchId && t.status === 'pending')
       .forEach(t => cancelledTaskIds.add(t.id))
     const finishedAt = new Date().toISOString().slice(0, 16).replace('T', ' ')
     set(s => ({
       tasks: s.tasks.map(t =>
-        t.batchId === batchId && (t.status === 'pending' || t.status === 'running')
+        t.batchId === batchId && t.status === 'pending'
           ? { ...t, status: 'cancelled' as const, finishedAt, errorMsg: '任务已取消' }
           : t
       ),
+      // 任务块 finishedAt 由最后一个终态任务完成时补填，此处不提前写入
     }))
   },
 }))
@@ -179,14 +189,19 @@ const simulateProgress = (
       clearInterval(timer)
       const finishedAt = new Date().toISOString().slice(0, 16).replace('T', ' ')
       const bookId = faker.number.int({ min: 4000000, max: 5000000 })
+      const bookTitle = faker.helpers.arrayElement([
+        '语文七年级上册（人教版）', '数学八年级下册（人教版）', '英语高一全册（北师大版）',
+        '物理九年级上册（人教版）', '化学高二下册（苏教版）', '历史七年级下册（人教版）',
+      ])
+      const bookYear = String(faker.helpers.arrayElement([2022, 2023, 2024, 2025]))
       set(s => {
         const tasks = s.tasks.map(t =>
-          t.id === id ? { ...t, status: 'success' as const, bookId, finishedAt } : t
+          t.id === id ? { ...t, status: 'success' as const, bookId, bookTitle, bookYear, finishedAt } : t
         )
-        // 若该批次所有任务已完成，补填 finishedAt
+        // 若该批次所有任务已终态（success/failed/cancelled），补填 finishedAt
         const allDone = tasks
           .filter(t => t.batchId === batchId)
-          .every(t => t.status === 'success' || t.status === 'failed')
+          .every(t => t.status === 'success' || t.status === 'failed' || t.status === 'cancelled')
         const batches = allDone
           ? s.batches.map(b => b.id === batchId ? { ...b, finishedAt } : b)
           : s.batches
