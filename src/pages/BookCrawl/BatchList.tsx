@@ -258,7 +258,7 @@ function AddTaskModal({ open, onClose }: { open: boolean; onClose: () => void })
 
 // ── 主页面 ────────────────────────────────────────────────────────
 export default function BatchList() {
-  const { filteredBatches, cancelBatch, tasks } = useCrawlStore()
+  const { filteredBatches, tasks } = useCrawlStore()
   const [modalOpen, setModalOpen] = useState(false)
   const navigate = useNavigate()
 
@@ -281,11 +281,7 @@ export default function BatchList() {
   const columns: TableColumnsType<CrawlBatch & { status: CrawlBatchStatus; taskCount: number }> = [
     {
       title: '任务块ID', dataIndex: 'id', width: 100,
-      render: (id: number) => (
-        <Button type="link" style={{ padding: 0 }} onClick={() => navigate(`/book-crawl/list?batchId=${id}`)}>
-          {id}
-        </Button>
-      ),
+      render: (id: number) => id,
     },
     { title: '抓取来源', dataIndex: 'source', width: 100 },
     { title: '创建时间', dataIndex: 'createdAt',  width: 160 },
@@ -296,10 +292,15 @@ export default function BatchList() {
       render: (v: CrawlBatchStatus) => <Tag color={BATCH_STATUS_CONFIG[v].color}>{BATCH_STATUS_CONFIG[v].label}</Tag>,
     },
     {
-      title: '操作', width: 120,
-      render: (_, record) => record.status === 'running'
-        ? <Button size="small" danger onClick={() => cancelBatch(record.id)}>取消任务</Button>
-        : <Button size="small" onClick={() => handleExportBatch(record.id)}>导出任务</Button>,
+      title: '操作', width: 180,
+      render: (_, record) => (
+        <Space size="small">
+          <Button size="small" onClick={() => navigate(`/book-crawl/list?batchId=${record.id}`)}>查看任务</Button>
+          {record.status === 'completed' && (
+            <Button size="small" onClick={() => handleExportBatch(record.id)}>导出任务</Button>
+          )}
+        </Space>
+      ),
     },
   ]
 
