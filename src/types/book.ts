@@ -51,7 +51,7 @@ export interface BookSearchParams {
   addedAtEnd?: string
 }
 
-export type CrawlTaskStatus = 'pending' | 'running' | 'success' | 'failed'
+export type CrawlTaskStatus = 'pending' | 'running' | 'success' | 'failed' | 'cancelled'
 export type CrawlPriority = 'high' | 'low'
 export type CrawlSource = 'kd' | 'kk' | 'zyjl'
 /** 任务块状态：由所属任务推导，不落盘 */

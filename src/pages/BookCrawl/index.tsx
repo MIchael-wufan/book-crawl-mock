@@ -6,7 +6,7 @@ import { ExportOutlined } from '@ant-design/icons'
 import type { TableColumnsType } from 'antd'
 import type { CrawlTask, CrawlTaskStatus, CrawlPriority, CrawlSource } from '../../types/book'
 import { useCrawlStore } from '../../stores/bookStore'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 
 const { RangePicker } = DatePicker
 const { Link } = Typography
@@ -15,10 +15,11 @@ const BOOK_DETAIL_URL = (bookId: number) =>
   `https://merc.yuanfudao.com/mark-qs/book/list?source=1&ids=${bookId}`
 
 const STATUS_CONFIG: Record<CrawlTaskStatus, { color: string; label: string }> = {
-  pending: { color: 'default',    label: '等待中' },
-  running: { color: 'processing', label: '抓取中' },
-  success: { color: 'success',    label: '成功'   },
-  failed:  { color: 'error',      label: '失败'   },
+  pending:   { color: 'default',   label: '等待中' },
+  running:   { color: 'processing', label: '抓取中' },
+  success:   { color: 'success',   label: '成功'   },
+  failed:    { color: 'error',     label: '失败'   },
+  cancelled: { color: 'warning',   label: '已终止' },
 }
 
 const PRIORITY_CONFIG: Record<CrawlPriority, { color: string; label: string }> = {
@@ -152,7 +153,6 @@ function FilterBar({ initBatchId }: { initBatchId?: string }) {
 // ── 主页面 ────────────────────────────────────────────────────────
 export default function BookCrawl() {
   const { filteredTasks } = useCrawlStore()
-  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const initBatchId = searchParams.get('batchId') ?? undefined
 
@@ -172,15 +172,8 @@ export default function BookCrawl() {
   }
 
   const columns: TableColumnsType<CrawlTask> = [
-    { title: '任务ID',   dataIndex: 'id',        width: 90  },
-    {
-      title: '任务块ID', dataIndex: 'batchId', width: 100,
-      render: (batchId: number) => (
-        <Button type="link" style={{ padding: 0 }} onClick={() => navigate(`/book-crawl/batches?batchId=${batchId}`)}>
-          {batchId}
-        </Button>
-      ),
-    },
+    { title: '任务块ID', dataIndex: 'batchId', width: 100 },
+    { title: '任务ID',   dataIndex: 'id',       width: 90  },
     { title: '抓取来源', dataIndex: 'source',     width: 100 },
     { title: '创建时间', dataIndex: 'createdAt',  width: 160 },
     { title: 'ISBN',     dataIndex: 'isbn',       width: 150 },

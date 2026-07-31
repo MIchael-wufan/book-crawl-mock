@@ -156,7 +156,7 @@ export const useCrawlStore = create<
     set(s => ({
       tasks: s.tasks.map(t =>
         t.batchId === batchId && (t.status === 'pending' || t.status === 'running')
-          ? { ...t, status: 'failed' as const, finishedAt, errorMsg: '任务已取消' }
+          ? { ...t, status: 'cancelled' as const, finishedAt, errorMsg: '任务已取消' }
           : t
       ),
     }))
