@@ -252,10 +252,7 @@ function AddTaskModal({ open, onClose }: { open: boolean; onClose: () => void })
             placeholder="请选择来源"
             value={source}
             onChange={v => setSource(v)}
-            options={[
-              { value: 'none', label: '不限' },
-              ...SOURCE_OPTIONS.filter(o => o.value !== 'all'),
-            ]}
+            options={SOURCE_OPTIONS.filter(o => o.value !== 'all')}
           />
         </Form.Item>
       </Form>
