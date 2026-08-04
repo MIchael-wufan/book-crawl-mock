@@ -51,7 +51,10 @@ export interface BookSearchParams {
   addedAtEnd?: string
 }
 
-export type CrawlTaskStatus = 'pending' | 'running' | 'success' | 'failed' | 'cancelled'
+/**
+ * not_updated: 抓取成功，但抓取到的图书年份 <= 提交时填写的库内状态年份，内容未更新
+ */
+export type CrawlTaskStatus = 'pending' | 'running' | 'success' | 'failed' | 'cancelled' | 'not_updated'
 export type CrawlPriority = 'high' | 'low' | 'lowest'
 export type CrawlSource = 'unlimited' | 'kd' | 'kk' | 'zyjl'
 /** 任务块状态：由所属任务推导，不落盘 */
@@ -93,6 +96,7 @@ export interface CrawlFilterParams {
   status?: CrawlTaskStatus | 'all'
   priority?: CrawlPriority | 'all'
   source?: CrawlSource | 'all'
+  inventoryStatus?: string  // 'all' | 'none' | 年份字符串
   batchId?: string
   /** 按任务块名称模糊筛选 */
   batchName?: string

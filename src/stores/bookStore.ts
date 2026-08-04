@@ -89,6 +89,13 @@ const applyFilter = (tasks: CrawlTask[], batches: CrawlBatch[], f: CrawlFilterPa
   if (f.status && f.status !== 'all')   list = list.filter(t => t.status === f.status)
   if (f.priority && f.priority !== 'all') list = list.filter(t => t.priority === f.priority)
   if (f.source && f.source !== 'all')   list = list.filter(t => t.source === f.source)
+  if (f.inventoryStatus && f.inventoryStatus !== 'all') {
+    if (f.inventoryStatus === 'none') {
+      list = list.filter(t => !t.inventoryStatus || t.inventoryStatus === 'none')
+    } else {
+      list = list.filter(t => t.inventoryStatus === f.inventoryStatus)
+    }
+  }
   if (f.bookId)   list = list.filter(t => t.bookId != null && matchesAny(String(t.bookId), f.bookId!))
   if (f.batchId)  list = list.filter(t => matchesAny(String(t.batchId), f.batchId!))
   if (f.batchName) {
@@ -240,9 +247,18 @@ const simulateProgress = (
       ])
       const bookYear = String(faker.helpers.arrayElement([2022, 2023, 2024, 2025]))
       set(s => {
-        const tasks = s.tasks.map(t =>
-          t.id === id ? { ...t, status: 'success' as const, bookId, bookTitle, bookYear, finishedAt } : t
-        )
+        const tasks = s.tasks.map(t => {
+          if (t.id !== id) return t
+          // 库内状态为年份时：库内年份 >= 抓取年份 → 未更新
+          const inventoryYear = t.inventoryStatus && t.inventoryStatus !== 'none' && /^\d{4}$/.test(t.inventoryStatus)
+            ? Number(t.inventoryStatus)
+            : null
+          const crawledYear = Number(bookYear)
+          const finalStatus = (inventoryYear !== null && inventoryYear >= crawledYear)
+            ? 'not_updated' as const
+            : 'success' as const
+          return { ...t, status: finalStatus, bookId, bookTitle, bookYear, finishedAt }
+        })
         // 若该批次所有任务已终态（success/failed/cancelled），补填 finishedAt
         const allDone = tasks
           .filter(t => t.batchId === batchId)

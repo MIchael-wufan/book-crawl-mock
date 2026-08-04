@@ -13,12 +13,23 @@ const { RangePicker } = DatePicker
 const { Dragger } = Upload
 
 const STATUS_CONFIG: Record<CrawlTaskStatus, { color: string; label: string }> = {
-  pending:   { color: 'default',    label: '队列中' },
-  running:   { color: 'processing', label: '抓取中' },
-  success:   { color: 'success',    label: '成功'   },
-  failed:    { color: 'error',      label: '失败'   },
-  cancelled: { color: 'warning',    label: '已取消' },
+  pending:     { color: 'default',    label: '队列中' },
+  running:     { color: 'processing', label: '抓取中' },
+  success:     { color: 'success',    label: '成功'   },
+  failed:      { color: 'error',      label: '失败'   },
+  cancelled:   { color: 'warning',    label: '已取消' },
+  not_updated: { color: 'orange',     label: '未更新' },
 }
+
+// 库内状态筛选选项：无资源 + 当前年份往前推 5 年
+const INVENTORY_FILTER_OPTIONS = [
+  { value: 'all',  label: '全部' },
+  { value: 'none', label: '无资源' },
+  ...Array.from({ length: 6 }, (_, i) => {
+    const y = String(new Date().getFullYear() - i)
+    return { value: y, label: y }
+  }),
+]
 
 const PRIORITY_CONFIG: Record<CrawlPriority, { color: string; label: string }> = {
   high:   { color: 'red',     label: '高优' },
@@ -235,15 +246,16 @@ function FilterBar({ onFiltered }: { onFiltered?: () => void }) {
     const v = form.getFieldsValue()
     const [start, end] = v.createdAtRange ?? [null, null]
     setFilter({
-      taskId:         v.taskId      || undefined,
-      batchName:      v.batchName   || undefined,
-      isbn:           v.isbn        || undefined,
-      source:         v.source      ?? 'all',
-      status:         v.status      ?? 'all',
-      priority:       v.priority    ?? 'all',
-      bookId:         undefined,
-      createdAtStart: start         || undefined,
-      createdAtEnd:   end           || undefined,
+      taskId:          v.taskId           || undefined,
+      batchName:       v.batchName        || undefined,
+      isbn:            v.isbn             || undefined,
+      source:          v.source           ?? 'all',
+      status:          v.status           ?? 'all',
+      priority:        v.priority         ?? 'all',
+      inventoryStatus: v.inventoryStatus  ?? 'all',
+      bookId:          undefined,
+      createdAtStart:  start              || undefined,
+      createdAtEnd:    end                || undefined,
     })
     onFiltered?.()
   }
@@ -252,7 +264,7 @@ function FilterBar({ onFiltered }: { onFiltered?: () => void }) {
     form.resetFields()
     setFilter({
       taskId: undefined, batchName: undefined, isbn: undefined,
-      source: 'all', status: 'all', priority: 'all',
+      source: 'all', status: 'all', priority: 'all', inventoryStatus: 'all',
       bookId: undefined, createdAtStart: undefined, createdAtEnd: undefined,
     })
     onFiltered?.()
@@ -294,6 +306,9 @@ function FilterBar({ onFiltered }: { onFiltered?: () => void }) {
                   ...Object.entries(PRIORITY_CONFIG).map(([v, c]) => ({ value: v, label: c.label })),
                 ]}
               />
+            </Form.Item>
+            <Form.Item label={<span style={labelStyle}>库内状态</span>} name="inventoryStatus" initialValue="all" style={{ margin: 0 }}>
+              <Select style={inputStyle} options={INVENTORY_FILTER_OPTIONS} />
             </Form.Item>
             <Form.Item label={<span style={labelStyle}>创建日期</span>} name="createdAtRange" style={{ margin: 0 }}>
               <RangePicker placeholder={['开始日期', '结束日期']} style={{ width: inputStyle.width + 60 }} />
