@@ -52,7 +52,7 @@ interface CrawlState {
   batchFilter: CrawlBatchFilterParams
   setFilter: (f: Partial<CrawlFilterParams>) => void
   setBatchFilter: (f: Partial<CrawlBatchFilterParams>) => void
-  addTasksBatch: (rows: Array<{ isbn: string; priority: CrawlPriority; inventoryStatus?: string }>, source: CrawlSource) => void
+  addTasksBatch: (rows: Array<{ isbn: string; priority: CrawlPriority; inventoryStatus?: string }>, source: CrawlSource, name?: string) => void
   cancelBatch: (batchId: number) => void
 }
 
@@ -89,6 +89,12 @@ const applyFilter = (tasks: CrawlTask[], batches: CrawlBatch[], f: CrawlFilterPa
   if (f.source && f.source !== 'all')   list = list.filter(t => t.source === f.source)
   if (f.bookId)   list = list.filter(t => t.bookId != null && matchesAny(String(t.bookId), f.bookId!))
   if (f.batchId)  list = list.filter(t => matchesAny(String(t.batchId), f.batchId!))
+  if (f.batchName) {
+    const matchedIds = new Set(
+      batches.filter(b => b.name && b.name.includes(f.batchName!)).map(b => b.id)
+    )
+    list = list.filter(t => matchedIds.has(t.batchId))
+  }
   if (f.batchStatus && f.batchStatus !== 'all') {
     const batchIds = new Set(
       batches
@@ -142,10 +148,10 @@ export const useCrawlStore = create<
   filteredTasks: () => applyFilter(get().tasks, get().batches, get().filter),
   filteredBatches: () => applyBatchFilter(get().batches, get().tasks, get().batchFilter),
 
-  addTasksBatch: (rows, source) => {
+  addTasksBatch: (rows, source, name) => {
     const now = new Date().toISOString().slice(0, 16).replace('T', ' ')
     const batchId = nextBatchId++
-    const newBatch: CrawlBatch = { id: batchId, source, createdAt: now }
+    const newBatch: CrawlBatch = { id: batchId, name: name?.trim() || undefined, source, createdAt: now }
     const newTasks: CrawlTask[] = rows.map(r => ({
       id: nextCrawlId++,
       isbn: r.isbn,

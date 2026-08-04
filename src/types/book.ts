@@ -59,6 +59,8 @@ export type CrawlBatchStatus = 'running' | 'cancelling' | 'completed' | 'cancell
 
 export interface CrawlBatch {
   id: number
+  /** 运营提交时设定的任务名称 */
+  name?: string
   source: CrawlSource
   createdAt: string
   finishedAt?: string
@@ -92,6 +94,8 @@ export interface CrawlFilterParams {
   priority?: CrawlPriority | 'all'
   source?: CrawlSource | 'all'
   batchId?: string
+  /** 按任务块名称模糊筛选 */
+  batchName?: string
   batchStatus?: CrawlBatchStatus | 'all'
   bookId?: string
   createdAtStart?: string

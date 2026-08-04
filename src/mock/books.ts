@@ -43,10 +43,10 @@ export const queryBooks = (
 
 // ── 抓取任务 mock ──────────────────────────────────────────────────
 export const MOCK_CRAWL_BATCHES: CrawlBatch[] = [
-  { id: 2001, source: 'kd',        createdAt: '2024-07-25 09:50' },
-  { id: 2002, source: 'kk',        createdAt: '2024-07-24 14:28', finishedAt: '2024-07-24 14:35' },
-  { id: 2003, source: 'zyjl',      createdAt: '2024-07-22 16:40', finishedAt: '2024-07-22 16:50' },
-  { id: 2004, source: 'unlimited', createdAt: '2024-07-20 10:00', finishedAt: '2024-07-20 10:05' },
+  { id: 2001, name: '2024暑期语文专项',  source: 'kd',        createdAt: '2024-07-25 09:50' },
+  { id: 2002, name: '初中数学英语补录',   source: 'kk',        createdAt: '2024-07-24 14:28', finishedAt: '2024-07-24 14:35' },
+  { id: 2003, name: '高中理化批次',       source: 'zyjl',      createdAt: '2024-07-22 16:40', finishedAt: '2024-07-22 16:50' },
+  { id: 2004, name: '历史地理取消批次',   source: 'unlimited', createdAt: '2024-07-20 10:00', finishedAt: '2024-07-20 10:05' },
 ]
 
 export const MOCK_CRAWL_TASKS: CrawlTask[] = [
