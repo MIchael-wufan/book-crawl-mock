@@ -54,6 +54,8 @@ interface CrawlState {
   setBatchFilter: (f: Partial<CrawlBatchFilterParams>) => void
   addTasksBatch: (rows: Array<{ isbn: string; priority: CrawlPriority; inventoryStatus?: string }>, source: CrawlSource, name?: string) => void
   cancelBatch: (batchId: number) => void
+  /** 取消一批子任务：pending → cancelled；running 任务不中断，自然跑完变 success/failed */
+  cancelTasks: (ids: number[]) => void
 }
 
 let nextCrawlId = MOCK_CRAWL_TASKS.length + 1001 + 1
@@ -195,6 +197,25 @@ export const useCrawlStore = create<
         return { tasks, batches }
       })
     }, 2000)
+  },
+
+  cancelTasks: (ids) => {
+    const tasks = get().tasks
+    // 只取消 pending 任务；running 任务不中断，让其跑完变 success/failed
+    const pendingIds = ids.filter(id => tasks.find(t => t.id === id)?.status === 'pending')
+    if (!pendingIds.length) return
+    pendingIds.forEach(id => cancelledTaskIds.add(id))
+    set(s => ({ tasks: [...s.tasks] }))
+    setTimeout(() => {
+      const finishedAt = new Date().toISOString().slice(0, 16).replace('T', ' ')
+      set(s => ({
+        tasks: s.tasks.map(t =>
+          pendingIds.includes(t.id) && t.status === 'pending'
+            ? { ...t, status: 'cancelled' as const, finishedAt }
+            : t
+        ),
+      }))
+    }, 600)
   },
 }))
 

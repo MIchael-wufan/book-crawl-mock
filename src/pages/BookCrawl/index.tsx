@@ -222,7 +222,7 @@ function AddTaskModal({ open, onClose }: { open: boolean; onClose: () => void })
 }
 
 // ── 筛选区 ───────────────────────────────────────────────────────
-function FilterBar() {
+function FilterBar({ onFiltered }: { onFiltered?: () => void }) {
   const { setFilter } = useCrawlStore()
   const [form] = Form.useForm()
 
@@ -245,6 +245,7 @@ function FilterBar() {
       createdAtStart: start         || undefined,
       createdAtEnd:   end           || undefined,
     })
+    onFiltered?.()
   }
 
   const handleReset = () => {
@@ -254,6 +255,7 @@ function FilterBar() {
       source: 'all', status: 'all', priority: 'all',
       bookId: undefined, createdAtStart: undefined, createdAtEnd: undefined,
     })
+    onFiltered?.()
   }
 
   return (
@@ -311,12 +313,35 @@ function FilterBar() {
 
 // ── 主页面 ───────────────────────────────────────────────────────
 export default function BookCrawl() {
-  const { filteredTasks, batches } = useCrawlStore()
+  const { filteredTasks, batches, cancelTasks } = useCrawlStore()
   const [modalOpen, setModalOpen] = useState(false)
+  const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([])
 
   const displayTasks = filteredTasks()
-  // batchId → name 查找表，用于列表展示任务名称
   const batchNameMap = new Map(batches.map(b => [b.id, b.name]))
+
+  // 选中行中还能被取消的数量（pending 立即取消，running 等待自然完成）
+  const cancelableCount = selectedRowKeys.filter(key => {
+    const t = displayTasks.find(t => t.id === key)
+    return t?.status === 'pending' || t?.status === 'running'
+  }).length
+
+  const pendingSelectedCount = selectedRowKeys.filter(key =>
+    displayTasks.find(t => t.id === key)?.status === 'pending'
+  ).length
+
+  const handleCancelSelected = () => {
+    cancelTasks(selectedRowKeys)
+    const runningCount = cancelableCount - pendingSelectedCount
+    if (pendingSelectedCount > 0 && runningCount > 0) {
+      message.info(`已取消 ${pendingSelectedCount} 条队列中任务；${runningCount} 条抓取中任务将在完成后结束`)
+    } else if (pendingSelectedCount > 0) {
+      message.success(`已取消 ${pendingSelectedCount} 条队列中任务`)
+    } else {
+      message.info(`${runningCount} 条抓取中任务将在完成后结束，无需手动取消`)
+    }
+    setSelectedRowKeys([])
+  }
 
   const handleExport = () => {
     const header = '子任务ID,任务名称,抓取来源,创建时间,ISBN,抓取状态'
@@ -361,9 +386,35 @@ export default function BookCrawl() {
     },
   ]
 
+  const tableFooter = selectedRowKeys.length > 0
+    ? () => (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <span style={{ color: 'rgba(0,0,0,0.65)', fontSize: 13 }}>
+          已选 {selectedRowKeys.length} 条
+        </span>
+        <Button
+          size="small"
+          danger
+          disabled={cancelableCount === 0}
+          onClick={handleCancelSelected}
+        >
+          取消选中任务
+        </Button>
+        <Button size="small" type="link" onClick={() => setSelectedRowKeys([])}>
+          清除选择
+        </Button>
+        {cancelableCount > 0 && cancelableCount !== pendingSelectedCount && (
+          <span style={{ color: 'rgba(0,0,0,0.45)', fontSize: 12 }}>
+            抓取中的任务将在完成后结束
+          </span>
+        )}
+      </div>
+    )
+    : undefined
+
   return (
     <div style={{ padding: '12px 0 24px' }}>
-      <FilterBar />
+      <FilterBar onFiltered={() => setSelectedRowKeys([])} />
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '12px 0 8px' }}>
         <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)}>
@@ -375,9 +426,15 @@ export default function BookCrawl() {
       <Card bordered={false} style={{ borderRadius: 4 }} bodyStyle={{ padding: 0 }}>
         <Table
           rowKey="id"
+          rowSelection={{
+            selectedRowKeys,
+            onChange: (keys) => setSelectedRowKeys(keys as number[]),
+            preserveSelectedRowKeys: false,
+          }}
           columns={columns}
           dataSource={displayTasks}
           pagination={{ pageSize: 20, showSizeChanger: true, showTotal: t => `共${t}条数据` }}
+          footer={tableFooter}
         />
       </Card>
 
