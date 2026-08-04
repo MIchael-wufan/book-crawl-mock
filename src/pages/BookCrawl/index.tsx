@@ -22,14 +22,19 @@ const STATUS_CONFIG: Record<CrawlTaskStatus, { color: string; label: string }> =
 }
 
 // 库内状态筛选选项：无资源 + 当前年份往前推 5 年
-const INVENTORY_FILTER_OPTIONS = [
-  { value: 'all',  label: '全部' },
-  { value: 'none', label: '无资源' },
-  ...Array.from({ length: 6 }, (_, i) => {
-    const y = String(new Date().getFullYear() - i)
-    return { value: y, label: y }
-  }),
-]
+// 库内状态筛选：无资源 + 未来 3 年 + 当前年份往前推 5 年（降序排列）
+const INVENTORY_FILTER_OPTIONS = (() => {
+  const cur = new Date().getFullYear()
+  const years = [
+    ...Array.from({ length: 3 }, (_, i) => cur + 3 - i),  // 未来 3 年（降序）
+    ...Array.from({ length: 6 }, (_, i) => cur - i),       // 当年往前 5 年
+  ]
+  return [
+    { value: 'all',  label: '全部' },
+    { value: 'none', label: '无资源' },
+    ...years.map(y => ({ value: String(y), label: String(y) })),
+  ]
+})()
 
 const PRIORITY_CONFIG: Record<CrawlPriority, { color: string; label: string }> = {
   high:   { color: 'red',     label: '高优' },
@@ -70,13 +75,17 @@ const parseBatchFile = (
 type ManualRow = { isbn: string; priority: CrawlPriority; inventoryStatus: string }
 const DEFAULT_ROW: ManualRow = { isbn: '', priority: 'high', inventoryStatus: '' }
 
-const INVENTORY_OPTIONS = [
-  { value: 'none', label: '无资源' },
-  ...Array.from({ length: 5 }, (_, i) => {
-    const y = String(new Date().getFullYear() - i)
-    return { value: y, label: y }
-  }),
-]
+const INVENTORY_OPTIONS = (() => {
+  const cur = new Date().getFullYear()
+  const years = [
+    ...Array.from({ length: 3 }, (_, i) => cur + 3 - i),
+    ...Array.from({ length: 6 }, (_, i) => cur - i),
+  ]
+  return [
+    { value: 'none', label: '无资源' },
+    ...years.map(y => ({ value: String(y), label: String(y) })),
+  ]
+})()
 
 function ManualRows({ rows, onChange }: { rows: ManualRow[]; onChange: (rows: ManualRow[]) => void }) {
   const update   = (i: number, patch: Partial<ManualRow>) =>
