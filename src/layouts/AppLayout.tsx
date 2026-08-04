@@ -8,14 +8,7 @@ const NAV_ITEMS = [
   { key: '/exercise-bank', label: '练习题库' },
   { key: '/online-copy',   label: '在线抄写' },
   { key: '/human-qa',      label: '人工问答' },
-  {
-    key: '/book-crawl',
-    label: '图书抓取',
-    children: [
-      { key: '/book-crawl/batches', label: '任务块列表' },
-      { key: '/book-crawl/list',    label: '任务列表'   },
-    ],
-  },
+  { key: '/book-crawl/list', label: '图书抓取' },
 ]
 
 export default function AppLayout() {

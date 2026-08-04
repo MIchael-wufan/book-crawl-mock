@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import {
-  Card, Table, Button, Input, Select, DatePicker, Space, Tag, Form, Typography,
+  Card, Table, Button, Input, Select, DatePicker, Space, Tag, Form,
 } from 'antd'
 import { ExportOutlined } from '@ant-design/icons'
 import type { TableColumnsType } from 'antd'
@@ -9,10 +9,6 @@ import { useCrawlStore } from '../../stores/bookStore'
 import { useSearchParams } from 'react-router-dom'
 
 const { RangePicker } = DatePicker
-const { Link } = Typography
-
-const BOOK_DETAIL_URL = (bookId: number) =>
-  `https://merc.yuanfudao.com/mark-qs/book/list?source=1&ids=${bookId}`
 
 const STATUS_CONFIG: Record<CrawlTaskStatus, { color: string; label: string }> = {
   pending:   { color: 'default',   label: '队列中' },
@@ -189,9 +185,7 @@ export default function BookCrawl() {
     },
     {
       title: '图书ID', dataIndex: 'bookId', width: 120,
-      render: (bookId?: number) => bookId
-        ? <Link href={BOOK_DETAIL_URL(bookId)} target="_blank" style={{ color: '#1890ff' }}>{bookId}</Link>
-        : '-',
+      render: (bookId?: number) => bookId ? String(bookId) : '-',
     },
     {
       title: '图书标题', dataIndex: 'bookTitle', width: 180,
@@ -206,11 +200,7 @@ export default function BookCrawl() {
   ]
 
   return (
-    <div style={{ padding: '0 0 24px' }}>
-      <div style={{ background: '#fff', padding: '12px 24px', borderBottom: '1px solid #f0f0f0' }}>
-        <span style={{ fontWeight: 600, fontSize: 18 }}>任务列表</span>
-      </div>
-
+    <div style={{ padding: '12px 0 24px' }}>
       <FilterBar initBatchId={initBatchId} />
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 0 8px' }}>

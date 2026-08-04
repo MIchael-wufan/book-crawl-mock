@@ -5,9 +5,9 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ConfigProvider } from 'antd'
 import zhCN from 'antd/locale/zh_CN'
 import AppLayout from './layouts/AppLayout'
+import CrawlLayout from './layouts/CrawlLayout'
 import BookList from './pages/BookList'
 import BookCrawl from './pages/BookCrawl'
-import BatchList from './pages/BookCrawl/BatchList'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -17,9 +17,10 @@ createRoot(document.getElementById('root')!).render(
           <Route element={<AppLayout />}>
             <Route index element={<Navigate to="/online-copy" replace />} />
             <Route path="/online-copy" element={<BookList />} />
-            <Route path="/book-crawl" element={<Navigate to="/book-crawl/batches" replace />} />
-            <Route path="/book-crawl/batches" element={<BatchList />} />
-            <Route path="/book-crawl/list" element={<BookCrawl />} />
+            <Route path="/book-crawl" element={<Navigate to="/book-crawl/list" replace />} />
+            <Route path="/book-crawl/list" element={<CrawlLayout />}>
+              <Route index element={<BookCrawl />} />
+            </Route>
             {/* 占位页 */}
             <Route path="/exam-platform" element={<Placeholder title="试卷平台" />} />
             <Route path="/exercise-bank" element={<Placeholder title="练习题库" />} />
