@@ -26,12 +26,6 @@ const PRIORITY_CONFIG: Record<CrawlPriority, { color: string; label: string }> =
   lowest: { color: 'default', label: '低优' },
 }
 
-const BATCH_STATUS_OPTIONS = [
-  { value: 'all',       label: '全部' },
-  { value: 'running',   label: '抓取中' },
-  { value: 'completed', label: '已完成' },
-]
-
 const SOURCE_OPTIONS: { value: CrawlSource | 'all'; label: string }[] = [
   { value: 'all',       label: '全部' },
   { value: 'unlimited', label: '不限' },
@@ -248,7 +242,6 @@ function FilterBar() {
       status:         v.status      ?? 'all',
       priority:       v.priority    ?? 'all',
       bookId:         v.bookId      || undefined,
-      batchStatus:    v.batchStatus ?? 'all',
       createdAtStart: start         || undefined,
       createdAtEnd:   end           || undefined,
     })
@@ -259,8 +252,7 @@ function FilterBar() {
     setFilter({
       taskId: undefined, batchName: undefined, isbn: undefined,
       source: 'all', status: 'all', priority: 'all',
-      bookId: undefined, batchStatus: 'all',
-      createdAtStart: undefined, createdAtEnd: undefined,
+      bookId: undefined, createdAtStart: undefined, createdAtEnd: undefined,
     })
   }
 
@@ -305,9 +297,6 @@ function FilterBar() {
               <Input placeholder="请输入图书ID，多个用空格分隔" style={inputStyle} allowClear />
             </Form.Item>
 
-            <Form.Item label={<span style={labelStyle}>任务块状态</span>} name="batchStatus" initialValue="all" style={{ margin: 0 }}>
-              <Select style={inputStyle} options={BATCH_STATUS_OPTIONS} />
-            </Form.Item>
             <Form.Item label={<span style={labelStyle}>创建日期</span>} name="createdAtRange" style={{ margin: 0 }}>
               <RangePicker placeholder={['开始日期', '结束日期']} style={{ width: inputStyle.width + 60 }} />
             </Form.Item>
