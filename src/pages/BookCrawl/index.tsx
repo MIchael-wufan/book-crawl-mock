@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import * as XLSX from 'xlsx'
 import {
   Card, Table, Button, Input, Select, DatePicker, Space, Tag, Form,
@@ -8,7 +8,6 @@ import { ExportOutlined, PlusOutlined } from '@ant-design/icons'
 import type { TableColumnsType } from 'antd'
 import type { CrawlTask, CrawlTaskStatus, CrawlPriority, CrawlSource } from '../../types/book'
 import { useCrawlStore } from '../../stores/bookStore'
-import { useSearchParams } from 'react-router-dom'
 
 const { RangePicker } = DatePicker
 const { Dragger } = Upload
@@ -229,17 +228,9 @@ function AddTaskModal({ open, onClose }: { open: boolean; onClose: () => void })
 }
 
 // ── 筛选区 ───────────────────────────────────────────────────────
-function FilterBar({ initBatchId }: { initBatchId?: string }) {
+function FilterBar() {
   const { setFilter } = useCrawlStore()
   const [form] = Form.useForm()
-
-  useEffect(() => {
-    if (initBatchId) {
-      form.setFieldsValue({ batchId: initBatchId })
-      setFilter({ batchId: initBatchId })
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   const labelStyle = { width: 90, textAlign: 'right' as const, color: 'rgba(0,0,0,0.88)' }
   const inputStyle = { width: 280 }
@@ -251,7 +242,6 @@ function FilterBar({ initBatchId }: { initBatchId?: string }) {
     const [start, end] = v.createdAtRange ?? [null, null]
     setFilter({
       taskId:         v.taskId      || undefined,
-      batchId:        v.batchId     || undefined,
       batchName:      v.batchName   || undefined,
       isbn:           v.isbn        || undefined,
       source:         v.source      ?? 'all',
@@ -267,7 +257,7 @@ function FilterBar({ initBatchId }: { initBatchId?: string }) {
   const handleReset = () => {
     form.resetFields()
     setFilter({
-      taskId: undefined, batchId: undefined, batchName: undefined, isbn: undefined,
+      taskId: undefined, batchName: undefined, isbn: undefined,
       source: 'all', status: 'all', priority: 'all',
       bookId: undefined, batchStatus: 'all',
       createdAtStart: undefined, createdAtEnd: undefined,
@@ -282,10 +272,6 @@ function FilterBar({ initBatchId }: { initBatchId?: string }) {
             <Form.Item label={<span style={labelStyle}>任务ID</span>} name="taskId" style={{ margin: 0 }}>
               <Input placeholder="请输入任务ID，多个用空格分隔" style={inputStyle} allowClear />
             </Form.Item>
-            <Form.Item label={<span style={labelStyle}>任务块ID</span>} name="batchId" style={{ margin: 0 }}>
-              <Input placeholder="请输入任务块ID，多个用空格分隔" style={inputStyle} allowClear />
-            </Form.Item>
-
             <Form.Item label={<span style={labelStyle}>任务名称</span>} name="batchName" style={{ margin: 0 }}>
               <Input placeholder="请输入任务名称关键字" style={inputStyle} allowClear />
             </Form.Item>
@@ -341,9 +327,7 @@ function FilterBar({ initBatchId }: { initBatchId?: string }) {
 // ── 主页面 ───────────────────────────────────────────────────────
 export default function BookCrawl() {
   const { filteredTasks, batches } = useCrawlStore()
-  const [searchParams] = useSearchParams()
   const [modalOpen, setModalOpen] = useState(false)
-  const initBatchId = searchParams.get('batchId') ?? undefined
 
   const displayTasks = filteredTasks()
   // batchId → name 查找表，用于列表展示任务名称
@@ -363,7 +347,6 @@ export default function BookCrawl() {
   }
 
   const columns: TableColumnsType<CrawlTask> = [
-    { title: '任务块ID', dataIndex: 'batchId', width: 100 },
     {
       title: '任务名称', dataIndex: 'batchId', key: 'batchName', width: 160,
       render: (batchId: number) => batchNameMap.get(batchId) ?? '-',
@@ -399,7 +382,7 @@ export default function BookCrawl() {
 
   return (
     <div style={{ padding: '12px 0 24px' }}>
-      <FilterBar initBatchId={initBatchId} />
+      <FilterBar />
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '12px 0 8px' }}>
         <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)}>
