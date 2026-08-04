@@ -241,7 +241,7 @@ function FilterBar() {
       source:         v.source      ?? 'all',
       status:         v.status      ?? 'all',
       priority:       v.priority    ?? 'all',
-      bookId:         v.bookId      || undefined,
+      bookId:         undefined,
       createdAtStart: start         || undefined,
       createdAtEnd:   end           || undefined,
     })
@@ -261,11 +261,11 @@ function FilterBar() {
       <Form form={form} layout="horizontal" colon>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'max-content max-content', columnGap: GROUP_GAP, rowGap: ROW_GAP }}>
-            <Form.Item label={<span style={labelStyle}>任务ID</span>} name="taskId" style={{ margin: 0 }}>
-              <Input placeholder="请输入任务ID，多个用空格分隔" style={inputStyle} allowClear />
-            </Form.Item>
             <Form.Item label={<span style={labelStyle}>任务名称</span>} name="batchName" style={{ margin: 0 }}>
               <Input placeholder="请输入任务名称关键字" style={inputStyle} allowClear />
+            </Form.Item>
+            <Form.Item label={<span style={labelStyle}>子任务ID</span>} name="taskId" style={{ margin: 0 }}>
+              <Input placeholder="请输入子任务ID，多个用空格分隔" style={inputStyle} allowClear />
             </Form.Item>
             <Form.Item label={<span style={labelStyle}>ISBN</span>} name="isbn" style={{ margin: 0 }}>
               <Input placeholder="请输入ISBN，多个用空格分隔" style={inputStyle} allowClear />
@@ -293,10 +293,6 @@ function FilterBar() {
                 ]}
               />
             </Form.Item>
-            <Form.Item label={<span style={labelStyle}>图书ID</span>} name="bookId" style={{ margin: 0 }}>
-              <Input placeholder="请输入图书ID，多个用空格分隔" style={inputStyle} allowClear />
-            </Form.Item>
-
             <Form.Item label={<span style={labelStyle}>创建日期</span>} name="createdAtRange" style={{ margin: 0 }}>
               <RangePicker placeholder={['开始日期', '结束日期']} style={{ width: inputStyle.width + 60 }} />
             </Form.Item>
@@ -323,9 +319,9 @@ export default function BookCrawl() {
   const batchNameMap = new Map(batches.map(b => [b.id, b.name]))
 
   const handleExport = () => {
-    const header = '任务ID,任务块ID,抓取来源,创建时间,ISBN,抓取状态,图书ID'
+    const header = '子任务ID,任务名称,抓取来源,创建时间,ISBN,抓取状态'
     const rows = displayTasks.map(t =>
-      [t.id, t.batchId, t.source, t.createdAt, t.isbn, STATUS_CONFIG[t.status].label, t.bookId ?? ''].join(',')
+      [t.id, batchNameMap.get(t.batchId) ?? '', t.source, t.createdAt, t.isbn, STATUS_CONFIG[t.status].label].join(',')
     )
     const blob = new Blob([[header, ...rows].join('\n'), ], { type: 'text/csv;charset=utf-8;' })
     const a = Object.assign(document.createElement('a'), {
@@ -340,7 +336,7 @@ export default function BookCrawl() {
       title: '任务名称', dataIndex: 'batchId', key: 'batchName', width: 160,
       render: (batchId: number) => batchNameMap.get(batchId) ?? '-',
     },
-    { title: '任务ID',   dataIndex: 'id',       width: 90  },
+    { title: '子任务ID', dataIndex: 'id',       width: 90  },
     { title: '抓取来源', dataIndex: 'source',          width: 100 },
     { title: '库内状态', dataIndex: 'inventoryStatus', width: 100, render: (v?: string) => v || '无资源' },
     { title: '创建时间', dataIndex: 'createdAt',       width: 160 },
@@ -352,10 +348,6 @@ export default function BookCrawl() {
     {
       title: '抓取状态', dataIndex: 'status', width: 100,
       render: (v: CrawlTaskStatus) => <Tag color={STATUS_CONFIG[v].color}>{STATUS_CONFIG[v].label}</Tag>,
-    },
-    {
-      title: '图书ID', dataIndex: 'bookId', width: 120,
-      render: (bookId?: number) => bookId ? String(bookId) : '-',
     },
     {
       title: '图书标题', dataIndex: 'bookTitle', width: 180,
