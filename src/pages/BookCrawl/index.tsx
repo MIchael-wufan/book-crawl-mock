@@ -340,12 +340,14 @@ function FilterBar({ initBatchId }: { initBatchId?: string }) {
 
 // ── 主页面 ───────────────────────────────────────────────────────
 export default function BookCrawl() {
-  const { filteredTasks } = useCrawlStore()
+  const { filteredTasks, batches } = useCrawlStore()
   const [searchParams] = useSearchParams()
   const [modalOpen, setModalOpen] = useState(false)
   const initBatchId = searchParams.get('batchId') ?? undefined
 
   const displayTasks = filteredTasks()
+  // batchId → name 查找表，用于列表展示任务名称
+  const batchNameMap = new Map(batches.map(b => [b.id, b.name]))
 
   const handleExport = () => {
     const header = '任务ID,任务块ID,抓取来源,创建时间,ISBN,抓取状态,图书ID'
@@ -362,6 +364,10 @@ export default function BookCrawl() {
 
   const columns: TableColumnsType<CrawlTask> = [
     { title: '任务块ID', dataIndex: 'batchId', width: 100 },
+    {
+      title: '任务名称', dataIndex: 'batchId', key: 'batchName', width: 160,
+      render: (batchId: number) => batchNameMap.get(batchId) ?? '-',
+    },
     { title: '任务ID',   dataIndex: 'id',       width: 90  },
     { title: '抓取来源', dataIndex: 'source',          width: 100 },
     { title: '库内状态', dataIndex: 'inventoryStatus', width: 100, render: (v?: string) => v || '无资源' },
